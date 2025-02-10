@@ -1,40 +1,44 @@
-import React, { useEffect, useState, useRef } from "react";
-
-
+import React, { useEffect, useState } from "react";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editedUser, setEditedUser] = useState(null);
 
-  const cardRef = useRef(null);
-  const nameRef = useRef(null);
-
   const fetchData = async () => {
     const response = await fetch("https://randomuser.me/api/?results=10");
     const data = await response.json();
-    console.log(data.results);
     setUsers(data.results);
   };
 
   const handleUserSelection = (user) => {
     setSelectedUser(user);
-    setEditedUser({ ...user }); // Initialize editedUser with a copy
-    console.log(selectedUser);
-    console.log(editedUser);
+    setEditedUser({ ...user });
   };
 
+  // const handleInputChange = (key, value) => {
+  //   if (editedUser) {
+  //     setEditedUser({ ...editedUser, [key]: value });
+  //   }
+  // };
+
   const handleInputChange = (key, value) => {
-    // console.log(e.target);
-
-    // const { name, value } = e.target;
-    // setEditedUser({ ...editedUser, [name]: value });
-
-    if(editedUser){
-      setEditedUser({...editedUser, [key]: value})
+    if (editedUser) {
+      // Split the input value into first and last names
+      if (key === "name") {
+        const [firstName, lastName] = value.split(" "); // Split by space
+        setEditedUser({
+          ...editedUser,
+          name: {
+            first: firstName || "", // Handle cases where there's no last name
+            last: lastName || "",
+          },
+        });
+      } else {
+        setEditedUser({ ...editedUser, [key]: value });
+      }
     }
-    console.log("editedUser", editedUser);
-    console.log("selected", selectedUser);
+    console.log("editedUser",editedUser)
   };
 
   const handleResetUser = () => {
@@ -42,17 +46,9 @@ const UserList = () => {
     setSelectedUser(null);
   };
 
-  // const handleNameClick = ()=>{
-  //   setEditedUser({ ...editedUser, [name]: nameRef.current.value });
-  // }
-
   useEffect(() => {
     fetchData();
   }, []);
-
-  // useEffect(() => {
-  //   console.log("selectedUser", selectedUser);
-  // }, [selectedUser, editedUser]);
 
   return (
     <div className="container">
@@ -60,92 +56,69 @@ const UserList = () => {
       <div className="row">
         <div className="col-md-6">
           {users.map((user) => (
-            <>
-              <div className="table border border-success " key={user.index}>
-                <div
-                  className="border border-5 d-flex justify-content-between"
-                  onClick={() => handleUserSelection(user)}
-                >
-                  <div className="">
-                    {" "}
-                    <img src={user.picture.medium} alt="user_picture" />
-                  </div>
-                  <div className="">
-                    {" "}
-                    {user.name.first} {user.name.last}
-                  </div>
-                  <div className=""> {user.email}</div>
-                  <div className=""> {user.location.country} </div>
-                  {/* <button className="btn btn-success btn-lg" onClick={e => handleSelect(user)}>Edit</button> */}
+            <div className="table border border-success mb-2" key={user.login.uuid}> {/* Key fix: Use user.login.uuid */}
+              <div
+                className="border border-5 d-flex align-items-center p-2 justify-content-evenly"
+                onClick={() => handleUserSelection(user)}
+                style={{ cursor: "pointer" }}
+              >
+                <img src={user.picture.medium} alt="user_picture" className="rounded-circle me-2" />
+                <div>
+                  {user.name.first} {user.name.last}
+                  <br />
+                  <small>{user.email}</small>
+                  <br />
+                  <small>{user.location.country}</small>
                 </div>
               </div>
-
-              {/* { navigate('/userProfile/:selctedUser.id')} */}
-              {/* <Route path="/userProfile/:user.index" component={UserProfile user={selectedUser}} /> */}
-
-              {/* <UserProfile key={selectedUser.index} user={selectedUser}/> */}
-            </>
+            </div>
           ))}
         </div>
         <div className="col-md-6">
           {selectedUser && (
-            <div className="card-container">
-              <div className="profile-card" ref={cardRef}>
+            <div className="card">
+              <div className="card-body">
                 <img
                   src={editedUser.picture.large}
                   alt={editedUser.name.first}
-                  className="card-image"
+                  className="card-image mb-3 rounded mx-auto d-block"
+                  style={{ maxWidth: "200px" }}
                 />
-                <div className="card-content">
-                  {/* <input
-                    ref={nameRef}
-                    type="text"
-                    name="name.first"
-                    defaultValue={editedUser.name.first || ""}
-                    onChange={handleNameClick}
-                    // onChange={(e) => handleInputChange('name.first', e.target.value)}
-                    className="card-input"
-                  /> */}
-
+                <div className="mb-2 d-flex ">
+                  <label htmlFor="name">Name:</label>
                   <input
                     type="text"
-                    value={editedUser.name.first + " " + editedUser.name.last}
+                    id="name"
+                    value={`${editedUser.name.first} ${editedUser.name.last}`} // Correct value
                     onChange={(e) => handleInputChange("name", e.target.value)}
-                    // onChange={handleInputChange}
-                 
-                    className="card-input"
+                    className="form-control ms-5"
                   />
-                  {/* <input
-                    type="text"
-                    name="name.last"
-                    value={editedUser.name.last || ""}
-                    onChange={handleInputChange}
-                    // onChange={(e) => handleInputChange('name.last', e.target.value)}
-                    className="card-input"
-                  /> */}
-                  <input
-                    type="text"
-                    // name="cell"
-                    value={editedUser.cell || "Phone"} // Handle undefined designation
-                    onChange={(e) => handleInputChange('cell', e.target.value)}
-                    // onChange={handleInputChange}
-                    className="card-input"
-                  />
-                  <input
-                    type="text"
-                    // name="email"
-                    value={editedUser.email || "Email"} // Handle undefined company
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    // onChange={handleInputChange}
-                    className="card-input"
-                  />
-
-                  {/* <p>Location: {editedUser.location.country}</p> */}
                 </div>
-              </div>
-              <div className="card-buttons">
-                {/* <button onClick={handleDownload}>Download</button> */}
-                <button onClick={handleResetUser}>Reset</button>
+                <div className="mb-2 d-flex">
+                  <label htmlFor="phone">Phone:</label>
+                  <input
+                    type="text"
+                    id="phone"
+                    value={editedUser.cell || ""} // Handle undefined
+                    onChange={(e) => handleInputChange("cell", e.target.value)}
+                    className="form-control ms-5"
+                  />
+                </div>
+                <div className="mb-2 d-flex">
+                  <label htmlFor="email">Email:</label>
+                  <input
+                    type="text"
+                    id="email"
+                    value={editedUser.email || ""} // Handle undefined
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    className="form-control ms-5"
+                  />
+                </div>
+                <div className="d-flex justify-content-end">
+                  <button onClick={handleResetUser} className="btn btn-secondary">
+                    Reset
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -154,4 +127,5 @@ const UserList = () => {
     </div>
   );
 };
+
 export default UserList;
